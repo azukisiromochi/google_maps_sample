@@ -1,4 +1,5 @@
 import 'dart:async';
+import "dart:math" as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -32,10 +33,10 @@ class _MapPageState extends State<MapPage> {
     _getLocation();
     _locationChangedListen =
         _locationService.onLocationChanged.listen((LocationData result) async {
-          setState(() {
-            _currentLocation = result;
-          });
-        });
+      setState(() {
+        _currentLocation = result;
+      });
+    });
   }
 
   @override
@@ -77,6 +78,16 @@ class _MapPageState extends State<MapPage> {
       if (_position != null) {
         markers.add(
             Marker(markerId: MarkerId('OnTapMarker'), position: _position));
+      }
+
+      // 現在位置とアプリの位置情報との間の距離を計算して print
+      if (_currentLocation != null && _position != null) {
+        var distance = haversineDistance(
+                LatLng(_currentLocation.latitude, _currentLocation.longitude),
+                _position)
+            .toString();
+
+        print(distance);
       }
 
       // Google Map ウィジェットを返す
@@ -141,5 +152,31 @@ class _MapPageState extends State<MapPage> {
         );
       },
     );
+  }
+
+  double haversineDistance(LatLng mk1, LatLng mk2) {
+    // Radius of the Earth in Kilometers
+    var R = 6371.0710;
+
+    // 角度（ radians ）に変換
+    var latitudeRadians1 = mk1.latitude * (math.pi / 180);
+    var latitudeRadians2 = mk2.latitude * (math.pi / 180);
+
+    // 緯度の角度差を求める
+    var diffLatitude = latitudeRadians2 - latitudeRadians1;
+
+    // 軽度の角度差を求める
+    var diffLongitude = (mk2.longitude - mk1.longitude) * (math.pi / 180);
+
+    // 2点間の距離を計算する
+    var d = 2 *
+        R *
+        math.asin(math.sqrt(
+            math.sin(diffLatitude / 2) * math.sin(diffLatitude / 2) +
+                math.cos(latitudeRadians1) *
+                    math.cos(latitudeRadians2) *
+                    math.sin(diffLongitude / 2) *
+                    math.sin(diffLongitude / 2)));
+    return d;
   }
 }

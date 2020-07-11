@@ -3,7 +3,8 @@ import "dart:math" as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
+import 'package:google_maps_webservice/places.dart';
+import 'package:location/location.dart' as l;
 
 class MapPage extends StatefulWidget {
   MapPage({Key key, this.position}) : super(key: key);
@@ -16,14 +17,17 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
   Completer<GoogleMapController> _controller = Completer();
-  Location _locationService = Location();
+  l.Location _locationService = l.Location();
   StreamSubscription _locationChangedListen;
 
   // 現在位置
-  LocationData _currentLocation;
+  l.LocationData _currentLocation;
 
   // アプリの位置情報
   LatLng _position;
+
+  final places =
+      GoogleMapsPlaces(apiKey: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
   @override
   void initState() {
@@ -31,8 +35,8 @@ class _MapPageState extends State<MapPage> {
 
     // 現在位置の取得
     _getLocation();
-    _locationChangedListen =
-        _locationService.onLocationChanged.listen((LocationData result) async {
+    _locationChangedListen = _locationService.onLocationChanged
+        .listen((l.LocationData result) async {
       setState(() {
         _currentLocation = result;
       });
@@ -114,10 +118,17 @@ class _MapPageState extends State<MapPage> {
           setState(() {
             // タップイベントは位置情報を引数に持つので、それをアプリの位置情報に登録（画面再描画）
             _position = value;
+            search();
           });
         },
       );
     }
+  }
+
+  void search() async {
+    PlacesSearchResponse response = await places.searchNearbyWithRadius(
+        Location(_position.latitude, _position.longitude), 10);
+    print(response);
   }
 
   /// 現在位置を取得する（非同期）

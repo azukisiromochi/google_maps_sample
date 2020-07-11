@@ -28,6 +28,9 @@ dependencies:
   # `Flutter upgrade` しないとエラーになることがある
   google_maps_flutter: ^0.5.28+1
 
+  # https://pub.dev/packages/google_maps_webservice
+  google_maps_webservice: ^0.0.17
+
   # https://pub.dev/packages/location
   location: ^3.0.2
 

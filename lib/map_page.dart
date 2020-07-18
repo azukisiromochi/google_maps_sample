@@ -118,17 +118,55 @@ class _MapPageState extends State<MapPage> {
           setState(() {
             // タップイベントは位置情報を引数に持つので、それをアプリの位置情報に登録（画面再描画）
             _position = value;
-            search();
+            search().then((stores) {
+              List<SimpleDialogOption> selectors = [
+                SimpleDialogOption(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text("店舗を選択しない"),
+                ),
+              ];
+              stores.forEach((element) {
+                selectors.add(
+                  SimpleDialogOption(
+                    onPressed: () {
+                      _position = LatLng(element.geometry.location.lat,
+                          element.geometry.location.lng);
+                      Navigator.pop(context);
+                    },
+                    child: Text(element.name),
+                  ),
+                );
+              });
+
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return SimpleDialog(
+                    title: Text("店舗選択"),
+                    children: selectors,
+                  );
+                },
+              );
+            });
           });
         },
       );
     }
   }
 
-  void search() async {
+  Future<List<PlacesSearchResult>> search() async {
     PlacesSearchResponse response = await places.searchNearbyWithRadius(
         Location(_position.latitude, _position.longitude), 10);
-    print(response);
+
+    // TODO: 確認用の出力
+    response.results.forEach((element) {
+      print('名前: ' + element.name);
+      print('緯度: ' + (element.geometry.location.lat).toString());
+      print('経度: ' + (element.geometry.location.lng).toString());
+      print('types: ' + element.types.join(","));
+    });
+
+    return response.results;
   }
 
   /// 現在位置を取得する（非同期）
